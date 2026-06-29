@@ -35,7 +35,7 @@ Grader runs `make verify` from a clean clone. Exit code 0 = all core checkpoints
 
 ---
 
-## Bonus (20 pts, optional, additive)
+## Bonus (30 pts, optional, additive)
 
 | # | Bonus | Pts | Checkpoint |
 |---|---|---|---|
