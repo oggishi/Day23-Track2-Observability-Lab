@@ -44,10 +44,13 @@ def check_compose_v2() -> tuple[bool, str]:
 
 def check_ram_headroom() -> tuple[bool, float]:
     """Best-effort RAM check via Docker info."""
-    out = subprocess.run(
-        ["docker", "info", "--format", "{{.MemTotal}}"],
-        capture_output=True, text=True, timeout=10,
-    )
+    try:
+        out = subprocess.run(
+            ["docker", "info", "--format", "{{.MemTotal}}"],
+            capture_output=True, text=True, timeout=10,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return False, 0.0
     if out.returncode != 0:
         return False, 0.0
     try:

@@ -38,6 +38,7 @@ TASKS = [
                                                   ("get_price", "SKU-2"), ("place_order", "SKU-2")],
      "expect": True},  # has a flaky tool -> tool error + retry
     {"goal": "So sánh giá (lỗi vòng lặp)", "plan": [("get_price", "SKU-1")] * 6, "expect": False},  # loop
+    {"goal": "Đọc suy nghĩ khách hàng (tool ảo)", "plan": [("read_mind", "user_1")], "expect": False}, # hallucinated-tool
 ]
 MAX_STEPS = 8
 
@@ -84,7 +85,7 @@ def run_task(task, tracer):
             yield
 
     steps = tool_calls = tool_errors = tokens = 0
-    actions, success = [], False
+    actions, success, hallucinated_tool = [], False, False
     with span("invoke_agent", {"gen_ai.operation.name": "invoke_agent",
                                "gen_ai.agent.name": "shopbot", "agent.goal": task["goal"]}):
         for (tool, arg) in task["plan"]:
@@ -92,6 +93,17 @@ def run_task(task, tracer):
                 break
             steps += 1
             actions.append((tool, arg))
+
+            if tool not in TOOLS:
+                tool_errors += 1
+                hallucinated_tool = True
+                with span("execute_tool", {"gen_ai.operation.name": "execute_tool",
+                                           "gen_ai.tool.name": tool,
+                                           "error": True,
+                                           "error.message": f"Tool '{tool}' not found (hallucinated-tool)"}):
+                    pass
+                break
+
             with span("execute_tool", {"gen_ai.operation.name": "execute_tool",
                                        "gen_ai.tool.name": tool}):
                 tool_calls += 1
@@ -111,14 +123,19 @@ def run_task(task, tracer):
         "tool_errors": tool_errors, "tokens": tokens,
         "cost_usd": round(tokens / 1000 * PRICE_PER_1K, 6),
         "success": success, "looped": looped,
-        "failure_modes": ([] if success and not looped else
+        "failure_modes": ([] if success and not looped and not hallucinated_tool else
                           (["loop/no-progress"] if looped else []) +
-                          (["tool-error"] if tool_errors else []) +
+                          (["tool-error"] if tool_errors and not hallucinated_tool else []) +
+                          (["hallucinated-tool"] if hallucinated_tool else []) +
                           ([] if success else ["task-failed"])),
     }
 
 
 def main():
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8')
     ap = argparse.ArgumentParser(description="AgentOps harness (deck §14/§19)")
     ap.add_argument("--out", default="agentops-report.json")
     ap.add_argument("--real-llm", action="store_true", help="(stub) use OPENAI_API_KEY policy instead of mock plans")

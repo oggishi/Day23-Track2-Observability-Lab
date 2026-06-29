@@ -1,0 +1,32 @@
+{
+  "docker": {
+    "ok": false,
+    "version": "docker version timed out: Command '['docker', 'version', '--format', '{{.Server.Version}}']' timed out after 10 seconds"
+  },
+  "compose_v2": {
+    "ok": true,
+    "version": "2.40.3-desktop.1"
+  },
+  "ram_gb_available": 0.0,
+  "ram_ok": false,
+  "required_ports": [
+    8000,
+    9090,
+    9093,
+    3000,
+    3100,
+    16686,
+    4317,
+    4318,
+    8888
+  ],
+  "bound_ports": [
+    9090,
+    9093,
+    3000,
+    3100,
+    16686,
+    8888
+  ],
+  "all_ports_free": false
+}
