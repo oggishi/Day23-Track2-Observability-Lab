@@ -2,51 +2,101 @@
   "title": "Cross-Day Stack (Day 23 integrative)",
   "uid": "day23-cross-day",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
-  "time": {"from": "now-1h", "to": "now"},
+  "time": { "from": "now-30m", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
   "panels": [
     {
-      "type": "stat", "title": "Day 16 — Cloud Hosts Up",
-      "id": 1, "gridPos": {"x": 0, "y": 0, "w": 8, "h": 6},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "count(up{job=~\"node.*\"})", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "short", "noValue": "No Data (Day 16 not running)"}}
+      "type": "stat",
+      "title": "Day 16 - Cloud Hosts Up",
+      "id": 1,
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "count(up{job=~\"node.*\"})", "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none", "noValue": "No Data (Day 16 stub)", "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" }
     },
     {
-      "type": "timeseries", "title": "Day 17 — Airflow DAG Duration (P95)",
-      "id": 2, "gridPos": {"x": 8, "y": 0, "w": 8, "h": 6},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(airflow_dag_run_duration_seconds_bucket[5m])))", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "s", "noValue": "No Data (Day 17 not running)"}}
+      "type": "timeseries",
+      "title": "Day 17 - Airflow DAG Duration (P95)",
+      "id": 2,
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(airflow_dag_run_duration_seconds_bucket[5m])))", "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "noValue": "No Data (Day 17 stub)", "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "showPoints": "never" } },
+        "overrides": []
+      },
+      "options": { "tooltip": { "mode": "single", "sort": "none" }, "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     },
     {
-      "type": "stat", "title": "Day 18 — Spark App Active",
-      "id": 3, "gridPos": {"x": 16, "y": 0, "w": 8, "h": 6},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "count(spark_application_active)", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "short", "noValue": "No Data (Day 18 not running)"}}
+      "type": "stat",
+      "title": "Day 18 - Spark App Active",
+      "id": 3,
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "count(spark_application_active)", "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none", "noValue": "No Data (Day 18 stub)", "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" }
     },
     {
-      "type": "stat", "title": "Day 19 — Qdrant Collections",
-      "id": 4, "gridPos": {"x": 0, "y": 6, "w": 8, "h": 6},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "day19_qdrant_collections", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "short", "noValue": "No Data (start monitor-day19...)"}}
+      "type": "stat",
+      "title": "Day 19 - Qdrant Collections",
+      "id": 4,
+      "gridPos": { "x": 0, "y": 6, "w": 8, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "day19_qdrant_collections", "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none", "noValue": "No Data (Day 19 stub)", "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" }
     },
     {
-      "type": "timeseries", "title": "Day 20 — llama.cpp Tokens/sec",
-      "id": 5, "gridPos": {"x": 8, "y": 6, "w": 8, "h": 6},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "day20_llamacpp_tokens_per_second", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "ops", "noValue": "No Data (start monitor-day20...)"}}
+      "type": "timeseries",
+      "title": "Day 20 - llama.cpp Tokens/sec",
+      "id": 5,
+      "gridPos": { "x": 8, "y": 6, "w": 8, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "day20_llamacpp_tokens_per_second", "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none", "noValue": "No Data (Day 20 stub)", "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "showPoints": "never" } },
+        "overrides": []
+      },
+      "options": { "tooltip": { "mode": "single", "sort": "none" }, "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     },
     {
-      "type": "stat", "title": "Day 22 — DPO Eval Pass Rate",
-      "id": 6, "gridPos": {"x": 16, "y": 6, "w": 8, "h": 6},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "day22_dpo_eval_pass_rate", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "percentunit", "noValue": "No Data (Day 22 not pushed)"}}
+      "type": "stat",
+      "title": "Day 22 - DPO Eval Pass Rate",
+      "id": 6,
+      "gridPos": { "x": 16, "y": 6, "w": 8, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "day22_dpo_eval_pass_rate", "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percentunit", "noValue": "No Data (Day 22 stub)", "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 0.8 } ] } },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "none", "justifyMode": "auto" }
     }
   ]
 }

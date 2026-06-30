@@ -59,6 +59,11 @@ services:
       - ./02-prometheus-grafana/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     environment:
       SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-https://hooks.slack.com/services/REPLACE/ME}
+    # Write the webhook from the env into the file Alertmanager reads
+    # (global.slack_api_url_file). $$ keeps the expansion inside the container.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - 'printf "%s" "$${SLACK_WEBHOOK_URL}" > /tmp/slack_url && exec /bin/alertmanager --config.file=/etc/alertmanager/alertmanager.yml --storage.path=/alertmanager'
     networks: [obs]
 
   grafana:
@@ -75,6 +80,9 @@ services:
     volumes:
       - ./02-prometheus-grafana/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./02-prometheus-grafana/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      # Track 05 cross-day dashboard (rubric #19/#20) — separate dir + provider
+      # (can't bind a single file into the :ro dashboards dir on Win/Mac).
+      - ./05-integration:/var/lib/grafana/dashboards-integration:ro
       - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus

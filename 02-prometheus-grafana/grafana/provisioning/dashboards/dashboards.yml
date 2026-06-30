@@ -11,3 +11,15 @@ providers:
     options:
       path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: false
+
+  # Track 05 cross-day dashboard (rubric #19/#20), mounted from 05-integration/.
+  - name: 'AICB-Day23-Integration'
+    orgId: 1
+    folder: 'AICB Day 23'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards-integration
+      foldersFromFilesStructure: false

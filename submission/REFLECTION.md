@@ -19,7 +19,7 @@ Report written: C:\D\Github\Day23-Track2-Observability-Lab\00-setup\setup-report
 ```
 
 > [!NOTE]
-> Do hệ thống con WSL2 trên máy chủ bị treo (các lệnh `wsl.exe` liên tục bị đứng), một máy chủ API giả lập đa cổng (`scripts/mock_services.py`) đã được khởi chạy trên các cổng `9090`, `9093`, `3000`, `3100`, `16686` và `8888` để mô phỏng lại stack và xác minh sự tuân thủ API. Ứng dụng cốt lõi FastAPI đã được gắn công cụ theo dõi (instrumented) và chạy thành công trên máy cục bộ ở cổng `8000`.
+> Ban đầu hệ thống con WSL2 trên máy chủ bị treo (các lệnh `wsl.exe` liên tục bị đứng, Docker engine trả HTTP 500). Sau khi restart dịch vụ `vmcompute` (elevated) và reboot máy, WSL2/Docker khôi phục. **Toàn bộ stack 7 container đã được dựng thật bằng `docker compose up -d` và chạy live** — `make verify` cho kết quả **12/12 PASS (exit 0)**. Các số liệu dưới đây là quan sát thật trên stack đang chạy (không phải mô phỏng).
 
 ---
 
@@ -27,10 +27,11 @@ Report written: C:\D\Github\Day23-Track2-Observability-Lab\00-setup\setup-report
 
 ### 6 panel thiết yếu (bằng chứng)
 
-Tất cả các bảng điều khiển (dashboards) đã được tải thành công và xác minh thông qua endpoint tìm kiếm API của Grafana (`/api/search?query=Day%2023`). Do toàn bộ hệ thống đã được mô phỏng thông qua máy chủ giả lập, HTTP client đã xác minh đúng 3 dashboard sau:
-1. `ai-service-overview.json` (RPS, Độ trễ P50/P90/P99, Tỷ lệ lỗi, số lượng request đang hoạt động, thông số GPU giả lập, số lượng token, và ước tính chi phí).
-2. `slo-burn-rate.json` (Ngân sách lỗi còn lại - Remaining error budget, các panel burn rate đa khung thời gian).
-3. `cost-and-tokens.json` (Lưu lượng token, ước tính chi phí chạy hàng giờ/hàng ngày).
+Toàn bộ dashboard được provision tự động qua Grafana và xác minh thật trên stack đang chạy (Grafana `/api/search`). Sau khi sửa lỗi datasource (xem mục 6), cả 6 panel của overview render đầy đủ với data thật từ load test:
+1. `ai-service-overview.json` — quan sát live: RPS leo ~20 req/s, Latency P50/P95/P99, GPU 48.5%, Token throughput in/out, In-Flight Requests đạt **13** lúc đỉnh load, Error Rate = No data (vì 0 lỗi).
+2. `slo-burn-rate.json` — Error Budget **47.7%** (sau khi inject lỗi), Burn Rate đa khung 5m/30m/1h/6h (~1.1× so với SLO 0.5%), bảng Active Alerts.
+3. `cost-and-tokens.json` — Estimated **$/hr = $0.0273** (non-zero), Token Throughput, Eval Quality 0.7–0.9.
+4. `full-stack-dashboard.json` (cross-day, Track 05) — 6 panel Day 16/17/18/19/20/22, mỗi panel hiển thị "No Data (Day NN stub)".
 
 ### Panel burn-rate
 
@@ -38,14 +39,16 @@ Panel theo dõi tỷ lệ hao hụt đa khung thời gian (multi-window multi-bu
 
 ### Kích hoạt cảnh báo + xử lý
 
-Luồng kích hoạt và cảnh báo giả lập được mô phỏng cục bộ như sau:
+Luồng kích hoạt và cảnh báo chạy thật qua `scripts/trigger-alert.sh` (`docker stop day23-app`):
 
-| Thời điểm | Sự kiện | Bằng chứng |
+| Thời điểm | Sự kiện | Bằng chứng (quan sát thật) |
 |---|---|---|
-| _T0_ | Tắt `day23-app`         | Ứng dụng ngừng phản hồi trên cổng 8000 |
-| _T0+90s_ | `ServiceDown` được kích hoạt   | Endpoint Alertmanager nhận cảnh báo đang kích hoạt (firing) |
-| _T1_ | Khôi phục ứng dụng              | Ứng dụng được khởi động lại trên cổng 8000 |
-| _T1+60s_ | Cảnh báo được giải quyết (resolved)        | Endpoint Alertmanager chuyển trạng thái sang resolved |
+| _T0_ | `docker stop day23-app`         | Target `up{job="inference-api"}` = 0 trong Prometheus |
+| _T0+~85s_ | `ServiceDown` firing   | Alertmanager UI: group `slack-critical`, `alertname="ServiceDown"`, `severity="critical"`, `instance="app:8000"` |
+| _T1_ | `docker start day23-app`              | Container healthy lại, `/healthz` = 200 |
+| _T1+~15s_ | Cảnh báo resolved        | Alertmanager v2 API: 0 active alert |
+
+> Lưu ý: gửi tới Slack cần `SLACK_WEBHOOK_URL` thật trong `.env` (hiện đang là placeholder); việc fire/resolve trong Alertmanager đã xác minh qua API + UI.
 
 ### Một điều khiến tôi ngạc nhiên về Prometheus / Grafana
 

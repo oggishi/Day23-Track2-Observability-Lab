@@ -1,6 +1,10 @@
 global:
   resolve_timeout: 1m
-  slack_api_url_file: ''   # we use webhook URL inline below
+  # The entrypoint in docker-compose.yml writes $SLACK_WEBHOOK_URL into this
+  # file at container start. Alertmanager reads it lazily at notify time, so
+  # the stack boots even before a real webhook is set. Alertmanager does NOT
+  # expand {{ env }} inside api_url, hence the file approach.
+  slack_api_url_file: /tmp/slack_url
 
 route:
   receiver: 'slack-default'
@@ -20,8 +24,7 @@ route:
 receivers:
   - name: 'slack-default'
     slack_configs:
-      - api_url: '{{ env "SLACK_WEBHOOK_URL" }}'
-        channel: '#observability'
+      - channel: '#observability'
         send_resolved: true
         title: '{{ if eq .Status "firing" }}🔥{{ else }}✅{{ end }} {{ .GroupLabels.alertname }}'
         text: |
@@ -33,8 +36,7 @@ receivers:
 
   - name: 'slack-critical'
     slack_configs:
-      - api_url: '{{ env "SLACK_WEBHOOK_URL" }}'
-        channel: '#oncall'
+      - channel: '#oncall'
         send_resolved: true
         title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
         text: |
